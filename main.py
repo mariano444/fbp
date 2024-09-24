@@ -12,6 +12,7 @@ from selenium.common.exceptions import TimeoutException, NoSuchElementException
 from selenium.webdriver.common.action_chains import ActionChains
 from image_editor import apply_professional_design  # Importa la función
 import random
+from http.server import BaseHTTPRequestHandler, HTTPServer
 
 class FacebookMarketplaceBot:
     def __init__(self, username, password):
@@ -266,6 +267,9 @@ if __name__ == "__main__":
 
     bot = FacebookMarketplaceBot(username, password)
     bot.login()
+
+    # Inicia el servidor HTTP
+    run(port=8000)
 
     for i in range(num_publications):
 
