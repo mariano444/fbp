@@ -275,8 +275,8 @@ def run_server():
     httpd.serve_forever()
 
 if __name__ == "__main__":
-    username = "autosusadosencuotasfijas@outlook.com"
-    password = "Usados1234"
+    username = os.getenv('autosusadosencuotasfijas@outlook.com')
+    password = os.getenv('Usados1234')
     num_publications = 20
 
     bot = FacebookMarketplaceBot(username, password)
