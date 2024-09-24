@@ -1,4 +1,3 @@
-# main.py
 import os
 import random
 import time
@@ -13,6 +12,7 @@ from selenium.webdriver.common.action_chains import ActionChains
 from image_editor import apply_professional_design  # Importa la función
 import random
 from http.server import BaseHTTPRequestHandler, HTTPServer
+import threading
 
 class FacebookMarketplaceBot:
     def __init__(self, username, password):
@@ -267,13 +267,13 @@ class RequestHandler(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(b'Bot de Facebook Marketplace en ejecucion.')
 
-    def run():
-        port = int(os.environ.get('PORT', 8000))  # Usar el puerto asignado por Render
-        server_address = ('', port)
-        httpd = HTTPServer(server_address, RequestHandler)
-        print(f'Servidor HTTP corriendo en el puerto {port}...')
-        httpd.serve_forever()
-        
+def run_server():
+    port = int(os.environ.get('PORT', 8000))  # Usar el puerto asignado por Render
+    server_address = ('', port)
+    httpd = HTTPServer(server_address, RequestHandler)
+    print(f'Servidor HTTP corriendo en el puerto {port}...')
+    httpd.serve_forever()
+
 if __name__ == "__main__":
     username = "autosusadosencuotasfijas@outlook.com"
     password = "Usados1234"
@@ -282,8 +282,11 @@ if __name__ == "__main__":
     bot = FacebookMarketplaceBot(username, password)
     bot.login()
 
-    for i in range(num_publications):
+    # Iniciar el servidor HTTP en un hilo separado
+    server_thread = threading.Thread(target=run_server)
+    server_thread.start()
 
+    for i in range(num_publications):
         random_price = random.choice(range(60000, 150001, 20000))
 
         form_data = {
@@ -299,4 +302,3 @@ if __name__ == "__main__":
         time.sleep(30)
 
     bot.close_browser()
-    run()  # Iniciar el servidor HTTP
