@@ -18,8 +18,7 @@ class FacebookMarketplaceBot:
     def __init__(self, username, password):
         self.username = username
         self.password = password
-        chrome_options = webdriver.ChromeOptions()
-        chrome_options.add_argument("--headless")  # Ejecutar en modo sin cabeza
+        chrome_options = webdriver.ChromeOptions() # Ejecutar en modo sin cabeza
         chrome_options.add_argument("--no-sandbox")
         chrome_options.add_argument("--disable-dev-shm-usage")
         chrome_options.add_argument("--disable-notifications")
@@ -275,8 +274,8 @@ def run_server():
     httpd.serve_forever()
 
 if __name__ == "__main__":
-    username = os.getenv('autosusadosencuotasfijas@outlook.com')
-    password = os.getenv('Usados1234')
+    username = 'autosusadosencuotasfijas@outlook.com'
+    password = 'Usados1234'
     num_publications = 20
 
     bot = FacebookMarketplaceBot(username, password)
