@@ -259,7 +259,21 @@ class FacebookMarketplaceBot:
         except Exception as e:
             print(f"Error al verificar campos completos: {e}")
             return False
+            
+class RequestHandler(BaseHTTPRequestHandler):
+    def do_GET(self):
+        self.send_response(200)
+        self.send_header('Content-type', 'text/html')
+        self.end_headers()
+        self.wfile.write(b'Bot de Facebook Marketplace en ejecucion.')
 
+    def run():
+        port = int(os.environ.get('PORT', 8000))  # Usar el puerto asignado por Render
+        server_address = ('', port)
+        httpd = HTTPServer(server_address, RequestHandler)
+        print(f'Servidor HTTP corriendo en el puerto {port}...')
+        httpd.serve_forever()
+        
 if __name__ == "__main__":
     username = "autosusadosencuotasfijas@outlook.com"
     password = "Usados1234"
@@ -267,9 +281,6 @@ if __name__ == "__main__":
 
     bot = FacebookMarketplaceBot(username, password)
     bot.login()
-
-    # Inicia el servidor HTTP
-    run(port=8000)
 
     for i in range(num_publications):
 
@@ -288,3 +299,4 @@ if __name__ == "__main__":
         time.sleep(30)
 
     bot.close_browser()
+    run()  # Iniciar el servidor HTTP
