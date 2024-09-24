@@ -2,10 +2,7 @@ services:
   - type: web
     name: facebook-marketplace-bot
     env: python
-    buildCommand: "pip install -r requirements.txt"
+    buildCommand: |
+      pip install --upgrade pip
+      pip install -r requirements.txt
     startCommand: "python main.py"
-    envVars:
-      - key: BOT_USERNAME
-        value: "<tu_usuario>"
-      - key: BOT_PASSWORD
-        value: "<tu_contraseña>"
