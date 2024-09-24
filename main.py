@@ -10,6 +10,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException, NoSuchElementException
 from selenium.webdriver.common.action_chains import ActionChains
 from image_editor import apply_professional_design  # Importa la función
+import random
 from http.server import BaseHTTPRequestHandler, HTTPServer
 import threading
 
@@ -49,7 +50,7 @@ class FacebookMarketplaceBot:
             self.driver.get("https://www.facebook.com/marketplace/create/vehicle")
             print("Redireccionado a Marketplace.")
 
-            # Selección aleatoria del año y precio
+             # Selección aleatoria del año y precio
             random_year = random.randint(2008, 2014)
 
             options = {
@@ -206,59 +207,98 @@ class FacebookMarketplaceBot:
                     modified_photo_path = photo_path
                 input_field = self.driver.find_element(By.XPATH, "//input[@type='file']")
                 input_field.send_keys(modified_photo_path)
-                print(f"Foto '{modified_photo_path}' subida.")
+                print(f"Fotografía {photo} cargada.")
                 photo_count += 1
-            self.photo_counter += photo_count
-            print(f"Se subieron {photo_count} fotos de un total de {num_photos_to_upload}.")
+                time.sleep(1)
+                photos.remove(photo)
+                self.driver.execute_script('arguments[0].value=""', input_field)
         except Exception as e:
-            print(f"Error al subir fotos: {e}")
+            print(f"Error al cargar las fotos: {e}")
 
-    def modify_and_save_photo(self, photo_path, modified_photo_path):
+    def modify_and_save_photo(self, original_path, modified_path):
+        """
+        Modifica una foto aplicando un texto con fondo y un diseño profesional,
+        y guarda la imagen modificada en la ruta especificada.
+        """
         try:
-            apply_professional_design(photo_path, modified_photo_path)  # Llama a la función para aplicar diseño
-            print(f"Foto '{photo_path}' modificada y guardada como '{modified_photo_path}'.")
-        except Exception as e:
-            print(f"Error al modificar la foto '{photo_path}': {e}")
+            original_image = cv2.imread(original_path)
+            if original_image is None:
+                raise FileNotFoundError(f"No se pudo leer la imagen: {original_path}")
 
+            # Aplicar mejoras visuales
+            modified_image = apply_professional_design(original_image)
+            cv2.imwrite(modified_path, modified_image)
+        except Exception as e:
+            print(f"Error al modificar y guardar la imagen: {e}")
+
+    def click_first_location_result(self):
+        try:
+            location_results = self.wait.until(EC.visibility_of_all_elements_located((By.XPATH, "//ul[contains(@role,'listbox')]//li")))
+            if location_results:
+                location_results[0].click()
+                print("Se hizo clic en el primer resultado de ubicación.")
+            else:
+                print("No se encontraron resultados de ubicación.")
+        except TimeoutException:
+            print("Tiempo de espera agotado para los resultados de ubicación.")
+        except Exception as e:
+            print(f"Error al hacer clic en el primer resultado de ubicación: {e}")
+
+    def check_all_fields_complete(self, form_data):
+        try:
+            incomplete_fields = []
+            for field_name in form_data.keys():
+                field = self.find_field_by_keyword(field_name)
+                if field and not field.get_attribute('value'):
+                    incomplete_fields.append(field_name)
+
+            if incomplete_fields:
+                print(f"Campos incompletos: {', '.join(incomplete_fields)}")
+                return False
+            return True
+        except Exception as e:
+            print(f"Error al verificar campos completos: {e}")
+            return False
+            
 class RequestHandler(BaseHTTPRequestHandler):
     def do_GET(self):
-        if self.path == '/':
-            self.send_response(200)
-            self.send_header('Content-type', 'text/html')
-            self.end_headers()
-            self.wfile.write(b'<html><body><h1>Bienvenido al bot de Facebook Marketplace</h1></body></html>')
-        else:
-            self.send_response(404)
-            self.end_headers()
+        self.send_response(200)
+        self.send_header('Content-type', 'text/html')
+        self.end_headers()
+        self.wfile.write(b'Bot de Facebook Marketplace en ejecucion.')
 
 def run_server():
-    server_address = ('', int(os.environ.get('PORT', 8000)))  # Usa el puerto de la variable de entorno
+    port = int(os.environ.get('PORT', 8000))  # Usar el puerto asignado por Render
+    server_address = ('', port)
     httpd = HTTPServer(server_address, RequestHandler)
-    print(f'Servidor corriendo en puerto {server_address[1]}...')
+    print(f'Servidor HTTP corriendo en el puerto {port}...')
     httpd.serve_forever()
 
-def main():
+if __name__ == "__main__":
     username = "autosusadosencuotasfijas@outlook.com"
     password = "Usados1234"
+    num_publications = 20
 
     bot = FacebookMarketplaceBot(username, password)
     bot.login()
 
-    form_data = {
-        "Marca": "Toyota",
-        "Modelo": "Corolla",
-        "Kilómetros": "50000",
-        "Precio": "1500000"
-    }
-
-    # Inicia el servidor en un hilo separado
-    server_thread = threading.Thread(target=run_server, daemon=True)
+    # Iniciar el servidor HTTP en un hilo separado
+    server_thread = threading.Thread(target=run_server)
     server_thread.start()
 
-    # Ejecuta el bot en un ciclo
-    while True:
-        bot.complete_form(form_data)
-        time.sleep(60)  # Espera 1 hora antes de la siguiente publicación
+    for i in range(num_publications):
+        random_price = random.choice(range(60000, 150001, 20000))
 
-if __name__ == "__main__":
-    main()
+        form_data = {
+            "Marca": "¡Excelente oportunidad! - Autos usados en cuotas fijas",
+            "Modelo": "y accesibles",
+            "Precio": str(random_price),
+            "Millaje": "300"
+        }
+        bot.complete_form(form_data)
+        time.sleep(15)
+        bot.click_button("Publicar")
+        print(f"Publicación {i+1}/{num_publications} completada.")
+        time.sleep(30)
+
+    bot.close_browser()
