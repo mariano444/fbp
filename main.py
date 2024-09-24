@@ -257,8 +257,8 @@ class FacebookMarketplaceBot:
             return False
 
 if __name__ == "__main__":
-    username = input("Ingresa tu usuario: ")
-    password = input("Ingresa tu contraseña: ")
+    username = "autos12345678910@outlook.com"
+    password = "Usados1234"
     num_publications = int(input("Ingresa el número de publicaciones que deseas hacer: "))
 
     bot = FacebookMarketplaceBot(username, password)
